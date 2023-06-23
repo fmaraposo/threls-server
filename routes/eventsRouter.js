@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Event = require('../models/event')
+const { randomUUID } = require('crypto')
 
 // Get all events that start from a particular date
 router.get('/:date', async (req, res) => {
@@ -24,7 +25,7 @@ router.get('/:date', async (req, res) => {
 router.post('/saveEvent', async (req, res) => {
 	try {
 		const eventData = req.body
-		const event = new Event(eventData)
+		const event = new Event({ ...eventData, id: randomUUID() })
 		const savedEvent = await event.save()
 		res.json(savedEvent)
 	} catch (error) {
