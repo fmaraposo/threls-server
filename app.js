@@ -1,10 +1,12 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const { mongoUri } = require('./config')
+const cors = require('cors');
 const eventsRouter = require('./routes/eventsRouter')
 
 const app = express() // start express app
 app.use(express.json()) // body parser middleware
+app.use(cors()); // enable cors for all routes
 connectMongoDB() // connect to MongoDB
 
 async function connectMongoDB() {
