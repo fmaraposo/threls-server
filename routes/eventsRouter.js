@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const Event = require('../models/event')
-const { areIntervalsOverlapping } = require('date-fns')
+const { areIntervalsOverlapping, isSameDay } = require('date-fns')
 
 const isOverlapping = async (event, edit) => {
 	let existingEvents
@@ -17,7 +17,7 @@ const isOverlapping = async (event, edit) => {
 		// Check if the event overlaps with any existing event
 		const eventOverlap = areIntervalsOverlapping(
 			{ start: new Date(e.startDate), end: new Date(e.endDate) },
-			{ start: new Date(event.startDate), end: new Date(event.endDate) }
+			{ start: new Date(event.startDate), end: new Date(event.endDate) }			
 		)
 
 		if (eventOverlap) return true
@@ -25,6 +25,11 @@ const isOverlapping = async (event, edit) => {
 	})
 
 	return isOverlap
+}
+
+const areDatesOnSameDay = (startDate, endDate) => {
+	const sameDay = isSameDay(new Date(startDate), new Date(endDate))
+	return sameDay
 }
 
 // Get all events that start from a particular date
@@ -46,9 +51,15 @@ router.post('/saveEvent', async (req, res) => {
 	try {
 		const eventData = req.body
 		const event = new Event(eventData)
-		if (await isOverlapping(eventData)) {
+
+		if (!areDatesOnSameDay(eventData.startDate, eventData.endDate)) {
+			// Check if event is on same day
+			res.json({ error: 'Events must be on same day.' })
+		} else if (await isOverlapping(eventData)) {
+			// Check if event overlaps with any existing event
 			res.json({ error: 'Event overlaps with an existing event.' })
 		} else {
+			// Save event
 			const savedEvent = await event.save()
 			res.json({ event: savedEvent, message: 'Event saved successfully.' })
 		}
@@ -77,9 +88,14 @@ router.put('/updateEvent/:id', async (req, res) => {
 	try {
 		const { id } = req.params
 		const eventData = req.body
-		if (await isOverlapping({ ...eventData, _id: id }, true)) {
+		if (!areDatesOnSameDay(eventData.startDate, eventData.endDate)) {
+			// Check if event is on same day
+			res.json({ error: 'Events must be on same day.' })
+		} else if (await isOverlapping({ ...eventData, _id: id }, true)) {
+			// Check if event overlaps with any existing event
 			res.json({ error: 'Event overlaps with an existing event.' })
 		} else {
+			// Update event
 			await Event.updateOne({ _id: id }, eventData)
 			res.json({ message: 'Event updated successfully.', event: { ...eventData, _id: id } })
 		}
