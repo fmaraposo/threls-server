@@ -63,7 +63,7 @@ router.post('/saveEvent', async (req, res) => {
 router.delete('/deleteEvent/:id', async (req, res) => {
 	try {
 		const { id } = req.params
-		await Event.deleteOne({ id })
+		await Event.deleteOne({ _id: id })
 		res.json({ message: 'Event deleted successfully.' })
 	} catch (error) {
 		res
