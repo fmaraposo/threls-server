@@ -1,13 +1,12 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const { mongoUri } = require('./config')
-const cors = require('cors');
+const cors = require('cors')
 const eventsRouter = require('./routes/eventsRouter')
 
 const app = express() // start express app
 app.use(express.json()) // body parser middleware
-app.use(cors()); // enable cors for all routes
-connectMongoDB() // connect to MongoDB
+app.use(cors()) // enable cors for all routes
 
 async function connectMongoDB() {
 	mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -16,8 +15,11 @@ async function connectMongoDB() {
 	db.on('error', console.error.bind(console, 'MongoDB connection error:'))
 }
 
-app.use('/api', eventsRouter);
+app.use('/api', eventsRouter)
 
-app.listen((port = 3000), () => {
-	console.log(`Server is running on port ${port}`)
+// connect to MongoDB
+connectMongoDB().then(() => {
+	app.listen((port = 3000), () => {
+		console.log(`Server is running on port ${port}`)
+	})
 })
